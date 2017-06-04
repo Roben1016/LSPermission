@@ -11,10 +11,6 @@ import android.support.annotation.Nullable;
 import com.roshine.lspermission.interfaces.OnPermissionRequestResultListener;
 
 
-/**
- * @author Roshine
- * @desc
- */
 @TargetApi(Build.VERSION_CODES.M)
 public class LSPermissionActivity extends Activity {
 

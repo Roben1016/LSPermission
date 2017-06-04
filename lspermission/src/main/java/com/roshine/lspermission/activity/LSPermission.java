@@ -20,10 +20,6 @@ import com.roshine.lspermission.requests.NormalReques;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Roshine
- * @desc
- */
 public class LSPermission {
 
     public static boolean checkPermissions(Context context,String[] permissions) {

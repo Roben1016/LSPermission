@@ -5,10 +5,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.v4.app.Fragment;
 
-/**
- * @author Roshine
- * @desc
- */
 public class FragmentV4Controller implements Controller {
     private Fragment mFragment;
     public FragmentV4Controller(Fragment fragment) {

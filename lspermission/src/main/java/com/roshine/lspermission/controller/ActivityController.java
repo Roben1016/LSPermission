@@ -5,10 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-/**
- * @author Roshine
- * @desc
- */
 public class ActivityController implements Controller {
     private Activity mActivity;
     public ActivityController(Activity activity) {

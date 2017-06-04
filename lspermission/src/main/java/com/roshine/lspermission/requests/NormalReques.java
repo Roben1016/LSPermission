@@ -18,10 +18,6 @@ import com.roshine.lspermission.interfaces.ShowRationableListener;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Roshine
- * @desc
- */
 public class NormalReques implements BaseRequest, Rationale, OnPermissionRequestResultListener {
     private static final String TAG = "Roshine";
     private Controller mController;

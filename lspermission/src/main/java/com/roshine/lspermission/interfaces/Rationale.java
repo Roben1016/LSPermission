@@ -15,12 +15,6 @@
  */
 package com.roshine.lspermission.interfaces;
 
-/**
- *
- * @author Roshine
- * @desc
- *
- */
 public interface Rationale extends Cancelable {
     void goPermissionActivity();
 
