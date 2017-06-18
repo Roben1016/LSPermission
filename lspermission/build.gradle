@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'    //添加
+//需要添加以下两行，直接复制就可以
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 25
@@ -28,15 +30,118 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
     testCompile 'junit:junit:4.12'
 }
-//添加
-publish {
-    userOrg = 'roben1016'//bintray.com用户名
-    groupId = 'com.roshine'//jcenter上的路径
-    artifactId = 'LSPermission'//项目名称
-    publishVersion = '1.0.0'//版本号
-    desc = 'a util for Android permissions'//描述，不重要
-    website = 'https://github.com/Roben1016/LSPermission'//网站，不重要
+
+
+//项目主页可以填写GitHub上对应的项目，填写自己的
+def siteUrl = 'https://github.com/Roben1016/LSPermission'
+//可以填写GitHub上项目的git地址，填写自己的
+def gitUrl = 'https://github.com/Roben1016/LSPermission.git'
+
+//发布到JCenter上的项目名字，填写自己的
+def libName = "LSPermission"
+
+//发布的组织名称，必须填写(一般是包名的前面两个，比如我的com.roshine.demo) ，填写自己的
+group = "com.roshine"
+// 填写自己的版本号，下次更新只需要更改版本号即可
+version = "1.0.3"
+//配合版本号上传到jcenter后就是这样的 compile 'com.roshime:library_name:1.0.0'
+
+//生成源文件，直接复制就可以
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+//生成Javadoc文档，直接复制就可以
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    //下面两句，如果你的项目中有中文注解，最好加上，否则上传可能报错，最后的建议是全部加上
+    options.encoding "UTF-8"
+    options.charSet 'UTF-8'
+    options.author true
+    options.version true
+    options.links "https://github.com/linglongxin24/FastDev/tree/master/mylibrary/docs/javadoc"
+    //如果上传报错找到什么suppert-v4什么的，需要加上这句，最后的建议是全部加上
+    failOnError false
+}
+
+//文档打包成jar，直接复制就可以
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+//拷贝javadoc文件，直接复制就可以
+task copyDoc(type: Copy) {
+    from "${buildDir}/docs/"
+    into "docs"
+}
+
+//上传到JCenter所需要的源码文件，直接复制就可以
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+// 配置maven库，生成POM.xml文件
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                //项目名称和描述，可以随意填
+                name 'LSPermission'
+                description 'a util for android permission'
+                url siteUrl
+                licenses {
+                    license {
+                        //开源协议,在bintray中创建仓库时选择的license为Apache-2.0，复制下面的就可以
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        //开发者的个人信息
+                        id 'roben1016' //可以填GitHub上的用户名
+                        name 'Roshine' // 用户名,自己随便写
+                        email 'roshine1016@gmail.com' // 邮箱
+                    }
+                }
+                scm {//复制就可以
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+//上传到JCenter
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    //下面两行复制就可以，但需要在项目的local.properties 文件中配置自己的用户名和apikey
+    // --》 bintray.user=你的用户名  bintray.apikey=你的apikey
+    user = properties.getProperty("bintray.user") //用户名 读取 local.properties 文件里面的 bintray.user
+    key = properties.getProperty("bintray.apikey") //apikey 读取 local.properties 文件里面的 bintray.apikey
+    configurations = ['archives']
+    pkg {
+        //这里的repo值必须要和你在bintray创建maven仓库时候的名字一样，填写自己的
+        repo = "maven"
+        //发布到JCenter上的项目名字
+        name = libName
+        //项目描述，填写自己的
+        desc = 'a util for android permission'
+        //下面的直接复制
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
 }

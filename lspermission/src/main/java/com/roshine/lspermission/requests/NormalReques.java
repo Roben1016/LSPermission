@@ -14,15 +14,16 @@ import com.roshine.lspermission.interfaces.OnPermissionListener;
 import com.roshine.lspermission.interfaces.OnPermissionRequestResultListener;
 import com.roshine.lspermission.interfaces.Rationale;
 import com.roshine.lspermission.interfaces.ShowRationableListener;
+import com.roshine.lspermission.utils.Constants;
+import com.roshine.lspermission.utils.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NormalReques implements BaseRequest, Rationale, OnPermissionRequestResultListener {
-    private static final String TAG = "Roshine";
     private Controller mController;
     private String[] mPermissions;
-    private int mRequesCode;
+    private int mRequesCode = -100;
     private OnPermissionListener mCallBack;
     private String[] mDeniedPermissions;
     private ShowRationableListener mShowRationableListener;
@@ -60,11 +61,12 @@ public class NormalReques implements BaseRequest, Rationale, OnPermissionRequest
         }
         return this;
     }
+
     @Override
     public BaseRequest onRationable(ShowRationableListener listener) {
         if (listener != null) {
             this.mShowRationableListener = listener;
-        }else{
+        } else {
             throw new IllegalArgumentException("ShowRationableListener is null!");
         }
         return this;
@@ -72,27 +74,35 @@ public class NormalReques implements BaseRequest, Rationale, OnPermissionRequest
 
     @Override
     public void start() {
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){//api23 以下
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {//api23 以下
             callBackSuccess();
-        }else{
-            mDeniedPermissions = getPermissionForDenied(mController.getContext(),mPermissions);
-            if(mDeniedPermissions.length > 0){
-                boolean shouldShow = mController.getShouldShowRationalePermissions(mDeniedPermissions);
-                if(shouldShow && mShowRationableListener != null ){
-                    mShowRationableListener.showRationablDialog(mRequesCode,this);
-                }else{
-                    goPermissionActivity();
+        } else {
+            if(mPermissions != null && mRequesCode != -100 && mCallBack != null ){
+                mDeniedPermissions = getPermissionForDenied(mController.getContext(), mPermissions);
+                if (mDeniedPermissions.length > 0) {
+                    boolean shouldShow = mController.getShouldShowRationalePermissions(mDeniedPermissions);
+                    if (shouldShow && mShowRationableListener != null) {
+                        mShowRationableListener.showRationablDialog(mRequesCode, this);
+                    } else {
+                        goPermissionActivity();
+                    }
+                } else {
+                    callBackSuccess();
                 }
             }else{
-                callBackSuccess();
+                LogUtil.showD(Constants.GLOBAL_TAG,"please check if you have added permissions or request code " +
+                        "or request callbake or onRationable callback!");
             }
         }
     }
 
-    private String[] getPermissionForDenied(Context context,String[] mPermissions) {
+    private String[] getPermissionForDenied(Context context, String[] mPermissions) {
+        if (mPermissions == null) {
+            throw new IllegalArgumentException("permissions is null,please add permissions!");
+        }
         List<String> denyList = new ArrayList<>();
         for (String permission : mPermissions) {
-            if(ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED){
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 denyList.add(permission);
             }
         }
@@ -100,22 +110,27 @@ public class NormalReques implements BaseRequest, Rationale, OnPermissionRequest
     }
 
     private void callBackSuccess() {
-        if(mCallBack != null){
-            mCallBack.onPermissionRequestSuc(mRequesCode,mPermissions);
+        if (mCallBack != null && mRequesCode != -100 && mPermissions != null) {
+            mCallBack.onPermissionRequestSuc(mRequesCode, mPermissions);
+        } else {
+            LogUtil.showD(Constants.GLOBAL_TAG, "please check if you have added a callback " +
+                    "or request code or permissions!");
         }
     }
+
     private void callBackFailed(String[] permissions) {
-        if (permissions != null) {
-            if (mCallBack != null) {
-                    mCallBack.onPermissionRequestFail(mRequesCode, permissions);
-            }
+        if (mCallBack != null && mRequesCode != -100 && permissions != null) {
+            mCallBack.onPermissionRequestFail(mRequesCode, permissions);
+        } else {
+            LogUtil.showD(Constants.GLOBAL_TAG, "please check if you have added a callback " +
+                    "or request code or permissions!");
         }
     }
 
     @Override
     public void goPermissionActivity() {
         LSPermissionActivity.setOnPermissionRequestResultListener(this);
-        Intent intent = new Intent(mController.getContext(),LSPermissionActivity.class);
+        Intent intent = new Intent(mController.getContext(), LSPermissionActivity.class);
         intent.putExtra(LSPermissionActivity.KEY_PERMISSIONS, mDeniedPermissions);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mController.startActivity(intent);
@@ -127,14 +142,14 @@ public class NormalReques implements BaseRequest, Rationale, OnPermissionRequest
         for (int i = 0; i < mPermissions.length; i++) {
             results[i] = ContextCompat.checkSelfPermission(mController.getContext(), mPermissions[i]);
         }
-        OnPermissionRequestResult(mRequesCode,mPermissions, results);
+        OnPermissionRequestResult(mRequesCode, mPermissions, results);
     }
 
     @Override
     public void OnPermissionRequestResult(int requestCode, String[] permissions, int[] grantResults) {
-        if(LSPermission.checkPermissions(mController.getContext(),permissions)){
+        if (LSPermission.checkPermissions(mController.getContext(), permissions)) {
             callBackSuccess();
-        }else{
+        } else {
             callBackFailed(permissions);
         }
     }

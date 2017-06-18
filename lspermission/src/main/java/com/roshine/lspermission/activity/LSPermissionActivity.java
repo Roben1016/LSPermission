@@ -9,6 +9,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.roshine.lspermission.interfaces.OnPermissionRequestResultListener;
+import com.roshine.lspermission.utils.Constants;
+import com.roshine.lspermission.utils.LogUtil;
 
 
 @TargetApi(Build.VERSION_CODES.M)
@@ -24,6 +26,7 @@ public class LSPermissionActivity extends Activity {
         Intent intent = getIntent();
         String[] permissions = intent.getStringArrayExtra(KEY_PERMISSIONS);
         if(permissions == null || resultListener == null){
+            LogUtil.showD(Constants.GLOBAL_TAG,"please check if you have added permissions or request code");
             finish();
         }else{
             requestPermissions(permissions,ACTIVITY_REQUEST_CODE);
